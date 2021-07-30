@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blog/helpers/funtions.dart';
+import 'package:flutter_blog/helpers/functions.dart';
 import 'package:flutter_blog/helpers/services.dart';
 import 'package:flutter_blog/models/post.dart';
 import 'package:flutter_blog/models/post_model.dart';

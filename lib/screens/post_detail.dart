@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/helpers/services.dart';
+import 'package:flutter_blog/screens/edit_post.dart';
+import 'package:flutter_blog/screens/home.dart';
 import 'package:intl/intl.dart';
 
-import 'package:flutter_blog/helpers/funtions.dart';
+import 'package:flutter_blog/helpers/functions.dart';
 import 'package:flutter_blog/models/post.dart';
 
 class PostDetails extends StatefulWidget {
@@ -50,7 +53,25 @@ class _PostDetailsState extends State<PostDetails> {
                       ),
                       value: "delete"),
                 ],
-                onSelected: (String value) {},
+                onSelected: (String value) {
+                  if (value == "edit") {
+                    showModalBottomSheet(
+                        isDismissible: false,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(15),
+                                topRight: Radius.circular(15))),
+                        context: context,
+                        builder: (context) => EditPost(
+                              id: widget.post.id,
+                              userId: widget.post.userId,
+                              title: widget.post.title,
+                              body: widget.post.body,
+                            ));
+                  } else if (value == "delete") {
+                    showAlertDialog(context);
+                  }
+                },
               ),
             ],
           ),
@@ -154,6 +175,44 @@ class _PostDetailsState extends State<PostDetails> {
           ),
         ),
       ),
+    );
+  }
+
+  showAlertDialog(BuildContext context) {
+    // set up the buttons
+    Widget cancelButton = TextButton(
+      child: Text("Cancel"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    Widget continueButton = TextButton(
+        child: Text("Continue"),
+        onPressed: () async {
+          await deletePost(widget.post.id);
+          ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Post successfully deleted")));
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (context) => Home()));
+        });
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: Text("Delete Post"),
+      content: Text(
+        "Would you like to Delete this post?",
+        style: TextStyle(color: Colors.black),
+      ),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 }

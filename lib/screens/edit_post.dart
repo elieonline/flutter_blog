@@ -2,27 +2,43 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import 'package:flutter_blog/helpers/services.dart';
 import 'package:flutter_blog/models/post.dart';
 import 'package:flutter_blog/models/post_model.dart';
 import 'package:flutter_blog/screens/home.dart';
-import 'package:provider/provider.dart';
 
-class NewPost extends StatefulWidget {
-  const NewPost({Key? key}) : super(key: key);
+class EditPost extends StatefulWidget {
+  const EditPost({
+    Key? key,
+    this.title,
+    this.body,
+    this.userId,
+    this.id,
+  }) : super(key: key);
+  final String? title;
+  final String? body;
+  final int? userId;
+  final int? id;
 
   @override
-  _NewPostState createState() => _NewPostState();
+  _EditPostState createState() => _EditPostState();
 }
 
-class _NewPostState extends State<NewPost> {
+class _EditPostState extends State<EditPost> {
   GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  TextEditingController _titleController = TextEditingController();
-  TextEditingController _descriptionController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     ThemeData theme = Theme.of(context);
+    TextEditingController _titleController =
+        TextEditingController(text: widget.title);
+    TextEditingController _descriptionController =
+        TextEditingController(text: widget.body);
+    int? id = widget.id;
+    int? userId = widget.userId;
+
     return Container(
       height: MediaQuery.of(context).size.height / 1.5,
       padding: EdgeInsets.all(20),
@@ -43,7 +59,7 @@ class _NewPostState extends State<NewPost> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "New Post",
+                    "Edit Post",
                     style: TextStyle(
                         fontSize: 18,
                         color: theme.primaryColor,
@@ -80,32 +96,26 @@ class _NewPostState extends State<NewPost> {
               SizedBox(height: 20),
               CupertinoButton.filled(
                 borderRadius: BorderRadius.circular(5),
-                child: Text('Post'),
+                child: Text('Update Post'),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     showCupertinoDialog(
                         context: context, builder: (context) => InfoDialog());
-                    var response = await addPost(AddPost(
-                      userId: Random(1).nextInt(11).toString(),
-                      title: _titleController.text,
-                      body: _descriptionController.text,
-                    ));
+                    var response = await updatePost(
+                        AddPost(
+                          userId: userId.toString(),
+                          id: id,
+                          title: _titleController.text,
+                          body: _descriptionController.text,
+                        ),
+                        id);
                     Navigator.pop(context);
                     print(response!.toJson());
-
                     if (response.title!.isNotEmpty) {
-                      Provider.of<PostModel>(context, listen: false).add(Post(
-                        userId: int.parse("${response.userId}"),
-                        id: response.id,
-                        title: response.title,
-                        body: response.body,
-                        date: DateTime.now(),
-                      ));
-
                       _titleController.clear();
                       _descriptionController.clear();
                       ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Post successfully added")));
+                          SnackBar(content: Text("Post successfully updated")));
                       Navigator.pop(context);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
