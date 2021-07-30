@@ -84,10 +84,11 @@ class _NewPostState extends State<NewPost> {
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     Provider.of<PostModel>(context, listen: false).add(Post(
-                      userId: Random().nextInt(20),
-                      id: Random(101).nextInt(200),
+                      userId: Random(1).nextInt(11),
+                      id: Random(1).nextInt(101),
                       title: _titleController.text,
                       body: _descriptionController.text,
+                      date: DateTime.now(),
                     ));
                     _titleController.clear();
                     _descriptionController.clear();

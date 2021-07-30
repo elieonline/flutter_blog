@@ -34,3 +34,13 @@ Future<List<Post>?>? postList() async {
     return null;
   }
 }
+
+Future<List<PostComment>?>? postComment(int? id) async {
+  try {
+    final response = await getRequest('posts/$id/comments');
+    return postCommentFromJson(response.body);
+  } catch (e) {
+    print(e.toString());
+    return null;
+  }
+}

@@ -1,9 +1,12 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/helpers/funtions.dart';
 import 'package:flutter_blog/helpers/services.dart';
 import 'package:flutter_blog/models/post.dart';
 import 'package:flutter_blog/models/post_model.dart';
 import 'package:flutter_blog/screens/new_post.dart';
+import 'package:flutter_blog/screens/post_detail.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -181,16 +184,37 @@ class _HomeState extends State<Home> {
             Post post = value.getFilteredPost[index];
             return Padding(
               padding: const EdgeInsets.only(bottom: 5.0),
-              child: Card(
+              child: GestureDetector(
+                child: Card(
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(8.0),
                     bottomRight: Radius.circular(8.0),
                   )),
                   elevation: 3,
-                  child: GestureDetector(
-                    child: postContent(post),
-                  )),
+                  child: postContent(post),
+                ),
+                onTap: () async {
+                  showCupertinoDialog(
+                      context: context, builder: (context) => InfoDialog());
+                  final response = await postComment(post.id);
+                  Navigator.pop(context);
+                  print(post.toJson());
+                  if (response!.isNotEmpty) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => PostDetails(
+                                post: post,
+                                comments: response,
+                              )),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("Connection Error")));
+                  }
+                },
+              ),
             );
           });
     });
@@ -212,6 +236,13 @@ class _HomeState extends State<Home> {
 
   /// content of a post
   Widget postContent(Post post) {
+    DateTime? date = post.date;
+    if (date == null) {
+      date = DateTime(2021);
+    }
+    var dateFormat = DateFormat("E d, MMM y");
+    var timeFormat = DateFormat.jm();
+
     return Container(
         child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +259,7 @@ class _HomeState extends State<Home> {
               padding: const EdgeInsets.only(bottom: 25.0),
               child: Container(
                 padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 25.0),
-                child: Text("Fri 30, Jul 2021"),
+                child: Text("${dateFormat.format(date)}"),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.75),
                   borderRadius: BorderRadius.only(
@@ -247,7 +278,6 @@ class _HomeState extends State<Home> {
               Text(
                 "${post.title!.titleCase}",
                 style: Theme.of(context).textTheme.headline6,
-                //textAlign: TextAlign.justify,
               ),
               SizedBox(height: 10),
               Text(
@@ -265,7 +295,7 @@ class _HomeState extends State<Home> {
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    "8 hours ago",
+                    "${timeFormat.format(date)}",
                     style: TextStyle(
                         color: Theme.of(context).primaryColor,
                         fontWeight: FontWeight.bold),
@@ -277,5 +307,43 @@ class _HomeState extends State<Home> {
         ),
       ],
     ));
+  }
+}
+
+class InfoDialog extends StatefulWidget {
+  const InfoDialog({
+    Key? key,
+  }) : super(key: key);
+  @override
+  _InfoDialogState createState() => _InfoDialogState();
+}
+
+class _InfoDialogState extends State<InfoDialog> {
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: contentBox(context),
+    );
+  }
+
+  Widget contentBox(BuildContext context) {
+    return Container(
+        padding: EdgeInsets.all(30.0),
+        height: 150,
+        decoration: BoxDecoration(
+          shape: BoxShape.rectangle,
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        child: Center(
+          child: Column(
+            children: [CircularProgressIndicator(), Text("Please wait...")],
+          ),
+        ));
   }
 }
