@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_blog/models/post.dart';
 import 'package:http/http.dart' as http;
 
@@ -23,7 +25,12 @@ Future<http.Response> getRequest(String uri) async {
   return response;
 }
 
-Future<List<Post>> postList() async {
-  final response = await getRequest('posts');
-  return postFromJson(response.body);
+Future<List<Post>?>? postList() async {
+  try {
+    final response = await getRequest('posts');
+    return postFromJson(response.body);
+  } catch (e) {
+    print(e.toString());
+    return null;
+  }
 }

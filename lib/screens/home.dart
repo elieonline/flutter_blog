@@ -23,31 +23,36 @@ class _HomeState extends State<Home> {
 
   bool _isBuilding = false;
 
-  List<Post> _filteredPosts = [];
-
+  ///Waiting while Fetching api online
   void _getPosts() async {
     setState(() {
       _isBuilding = true;
     });
 
-    final response = await postList(); //fetchint posts from api
-    for (Post item in response) {
-      Provider.of<PostModel>(context, listen: false).add(item);
+    final response = await postList();
+    if (response != null) {
+      for (Post item in response) {
+        Provider.of<PostModel>(context, listen: false)
+            .add(item); // adding fetched api to post list
+      }
     }
 
     setState(() {
-      _filteredPosts = Provider.of<PostModel>(context, listen: false).items;
       _isBuilding = false;
     });
   }
 
+  /// adding listener to search bar
   _HomeState() {
     _searchController.addListener(() {
       if (_searchController.text.isEmpty) {
         setState(() {
           _searchText = "";
-          _filteredPosts = Provider.of<PostModel>(context, listen: false).items;
         });
+
+        Provider.of<PostModel>(context, listen: false).setFilteredPost =
+            Provider.of<PostModel>(context, listen: false)
+                .items; // set filter post to all post if search bar is empty
       } else {
         setState(() {
           _searchText = _searchController.text;
@@ -59,7 +64,7 @@ class _HomeState extends State<Home> {
   @override
   void initState() {
     super.initState();
-    _getPosts();
+    _getPosts(); //get post list on initialized
   }
 
   @override
@@ -71,10 +76,7 @@ class _HomeState extends State<Home> {
         title: _appBarTitle,
         actions: [
           IconButton(
-              icon: Icon(
-                _searchIcon,
-                color: theme.primaryColor,
-              ),
+              icon: Icon(_searchIcon),
               onPressed: () {
                 setState(() {
                   if (_searchIcon == Icons.search) {
@@ -88,7 +90,7 @@ class _HomeState extends State<Home> {
                   } else {
                     _searchIcon = Icons.search;
                     _appBarTitle = Text("Flutter Blog",
-                        style: TextStyle(color: Color(0xFF8A0202)));
+                        style: TextStyle(color: theme.primaryColor));
                     _searchController.clear();
                   }
                 });
@@ -114,14 +116,23 @@ class _HomeState extends State<Home> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => Navigator.push(
-            context, MaterialPageRoute(builder: (context) => NewPost())),
+        onPressed: () => showModalBottomSheet(
+            isDismissible: false,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(15),
+                    topRight: Radius.circular(15))),
+            context: context,
+            builder: (context) => NewPost()),
       ),
     );
   }
 
+  /// building list to display
   Widget _buildList() {
     List<Post> posts = Provider.of<PostModel>(context, listen: false).items;
+
+    // checking if search text is not empty then filter all post and rebuild the list
     if (_searchText.isNotEmpty) {
       List<Post> tempList = [];
       for (Post post in posts) {
@@ -130,11 +141,12 @@ class _HomeState extends State<Home> {
           tempList.add(post);
         }
       }
-      setState(() {
-        _filteredPosts = tempList;
-      });
+
+      Provider.of<PostModel>(context, listen: false).setFilteredPost =
+          tempList; //adding filtered post
     }
 
+    //check if api is not reading then display dummy list
     if (_isBuilding) {
       return ListView.builder(
           itemCount: 10,
@@ -145,41 +157,46 @@ class _HomeState extends State<Home> {
               ));
     }
 
-    if (_filteredPosts.isEmpty && !_isBuilding) {
-      return Container(
-        alignment: Alignment.center,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text("No post found",
-                style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.bold))
-          ],
-        ),
-      );
-    }
+    //building list
+    return Consumer<PostModel>(builder: (context, value, child) {
+      //check if list is empty
+      if (value.length < 1 && !_isBuilding) {
+        return Container(
+          alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("No post found",
+                  style: TextStyle(
+                      color: Theme.of(context).primaryColor,
+                      fontWeight: FontWeight.bold))
+            ],
+          ),
+        );
+      }
 
-    return ListView.builder(
-        itemCount: _filteredPosts.length,
-        itemBuilder: (context, index) {
-          Post post = _filteredPosts[index];
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 5.0),
-            child: Card(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(8.0),
-                  bottomRight: Radius.circular(8.0),
-                )),
-                elevation: 3,
-                child: GestureDetector(
-                  child: postContent(post),
-                )),
-          );
-        });
+      return ListView.builder(
+          itemCount: value.length,
+          itemBuilder: (context, index) {
+            Post post = value.getFilteredPost[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 5.0),
+              child: Card(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(8.0),
+                    bottomRight: Radius.circular(8.0),
+                  )),
+                  elevation: 3,
+                  child: GestureDetector(
+                    child: postContent(post),
+                  )),
+            );
+          });
+    });
   }
 
+  /// dummy list
   Widget dummyList() {
     return ListTile(
       isThreeLine: true,
@@ -193,6 +210,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  /// content of a post
   Widget postContent(Post post) {
     return Container(
         child: Column(

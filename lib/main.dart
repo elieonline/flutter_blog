@@ -13,7 +13,8 @@ ThemeData _buildAppTheme() {
     scaffoldBackgroundColor: Colors.white,
     appBarTheme: AppBarTheme(
       color: Colors.white,
-      iconTheme: IconThemeData(color: Colors.black),
+      iconTheme: IconThemeData(color: Color(0xFF8A0202)),
+      foregroundColor: Color(0xFF8A0202),
       elevation: 0,
       brightness: Brightness.light,
     ),
@@ -35,9 +36,11 @@ ThemeData _buildAppTheme() {
 void main() async {
   SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-  runApp(new MaterialApp(
-    theme: _appTheme,
-    home:
-        ChangeNotifierProvider(create: (context) => PostModel(), child: Home()),
+  runApp(ChangeNotifierProvider(
+    create: (context) => PostModel(),
+    child: MaterialApp(
+      theme: _appTheme,
+      home: Home(),
+    ),
   ));
 }
