@@ -18,5 +18,11 @@ class PostModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void delete(Post post) {
+    _posts.remove(post);
+    _filteredPost = _posts;
+    notifyListeners();
+  }
+
   int get length => _filteredPost.length;
 }

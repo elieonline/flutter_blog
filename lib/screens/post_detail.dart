@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_blog/helpers/services.dart';
+import 'package:flutter_blog/models/post_model.dart';
 import 'package:flutter_blog/screens/edit_post.dart';
 import 'package:flutter_blog/screens/home.dart';
 import 'package:intl/intl.dart';
 
 import 'package:flutter_blog/helpers/functions.dart';
 import 'package:flutter_blog/models/post.dart';
+import 'package:provider/provider.dart';
 
 class PostDetails extends StatefulWidget {
   const PostDetails({
@@ -190,10 +192,13 @@ class _PostDetailsState extends State<PostDetails> {
         child: Text("Continue"),
         onPressed: () async {
           await deletePost(widget.post.id);
+          Navigator.pop(context);
+          Provider.of<PostModel>(context, listen: false).delete(widget.post);
           ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Post successfully deleted")));
-          Navigator.pushReplacement(
-              context, MaterialPageRoute(builder: (context) => Home()));
+          Navigator.pop(context);
+          // Navigator.pushReplacement(
+          //     context, MaterialPageRoute(builder: (context) => Home()));
         });
     // set up the AlertDialog
     AlertDialog alert = AlertDialog(
