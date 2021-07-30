@@ -79,3 +79,35 @@ class PostComment {
         "body": body,
       };
 }
+
+AddPost addPostFromJson(String str) => AddPost.fromJson(json.decode(str));
+
+String addPostToJson(AddPost data) => json.encode(data.toJson());
+
+class AddPost {
+  AddPost({
+    this.title,
+    this.body,
+    this.userId,
+    this.id,
+  });
+
+  String? title;
+  String? body;
+  String? userId;
+  int? id;
+
+  factory AddPost.fromJson(Map<String, dynamic> json) => AddPost(
+        title: json["title"],
+        body: json["body"],
+        userId: json["userId"],
+        id: json["id"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "title": title,
+        "body": body,
+        "userId": userId,
+        "id": id,
+      };
+}

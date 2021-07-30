@@ -2,8 +2,10 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blog/helpers/services.dart';
 import 'package:flutter_blog/models/post.dart';
 import 'package:flutter_blog/models/post_model.dart';
+import 'package:flutter_blog/screens/home.dart';
 import 'package:provider/provider.dart';
 
 class NewPost extends StatefulWidget {
@@ -83,18 +85,34 @@ class _NewPostState extends State<NewPost> {
                 child: Text('Post'),
                 onPressed: () async {
                   if (_formKey.currentState!.validate()) {
-                    Provider.of<PostModel>(context, listen: false).add(Post(
-                      userId: Random(1).nextInt(11),
-                      id: Random(1).nextInt(101),
+                    showCupertinoDialog(
+                        context: context, builder: (context) => InfoDialog());
+                    var response = await addPost(AddPost(
+                      userId: Random(1).nextInt(11).toString(),
                       title: _titleController.text,
                       body: _descriptionController.text,
-                      date: DateTime.now(),
                     ));
-                    _titleController.clear();
-                    _descriptionController.clear();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Post successfully added")));
                     Navigator.pop(context);
+                    print(response!.toJson());
+
+                    if (response.title!.isNotEmpty) {
+                      Provider.of<PostModel>(context, listen: false).add(Post(
+                        userId: int.parse("${response.userId}"),
+                        id: response.id,
+                        title: response.title,
+                        body: response.body,
+                        date: DateTime.now(),
+                      ));
+
+                      _titleController.clear();
+                      _descriptionController.clear();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Post successfully added")));
+                      Navigator.pop(context);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("Connection Error")));
+                    }
                   }
                 },
               ),

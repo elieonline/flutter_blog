@@ -198,9 +198,10 @@ class _HomeState extends State<Home> {
                   showCupertinoDialog(
                       context: context, builder: (context) => InfoDialog());
                   final response = await postComment(post.id);
+                  print(response.toString());
                   Navigator.pop(context);
                   print(post.toJson());
-                  if (response!.isNotEmpty) {
+                  if (response != null) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
